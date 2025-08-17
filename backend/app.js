@@ -5,6 +5,14 @@ const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const setupSwagger = require('./swagger');
+const cors = require('cors');
+
+// Allow requests from your frontend origin
+app.use(cors({
+  origin: 'http://localhost:3001',  // frontend URL
+  methods: ['GET','POST','PUT','DELETE'],
+  credentials: true
+}));
 
 app.use(express.json());
 
