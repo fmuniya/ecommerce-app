@@ -6,6 +6,8 @@ const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const setupSwagger = require('./swagger');
 const cors = require('cors');
+const userRoutes = require('./routes/users');
+
 
 // Allow requests from your frontend origin
 app.use(cors({
@@ -13,6 +15,8 @@ app.use(cors({
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
+
+app.use('/users', userRoutes);
 
 app.use(express.json());
 

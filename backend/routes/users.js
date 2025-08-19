@@ -8,6 +8,7 @@ const {
     loginUser } = require('../controllers/usersController');
 
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { register, login, googleLogin } = require('../controllers/authController');
 
 /**
  * @swagger
@@ -63,7 +64,11 @@ router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
  *       404:
  *         description: User not found
  */
+
+//get user by ID
 router.get('/:id', authenticateToken, getUserById);
+// Update user
+// router.put('/:id', authenticateToken, updateUser);
 
 
 /**
@@ -138,7 +143,7 @@ router.put('/:id', authenticateToken, updateUser);
  *       400:
  *         description: Invalid input
  */
-router.post('/register', registerUser);
+router.post('/register', register);
 
 
 /**
@@ -167,7 +172,38 @@ router.post('/register', registerUser);
  *       401:
  *         description: Unauthorized
  */
-router.post('/login', loginUser);
+router.post('/login', login);
+
+// ------------------ Google login ------------------
+/**
+ * @swagger
+ * /users/google-login:
+ *   post:
+ *     summary: Log in or register a user via Google OAuth (JWT from Google Identity Services)
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credential
+ *             properties:
+ *               credential:
+ *                 type: string
+ *                 description: Google ID token (JWT) returned from Google Identity Services
+ *     responses:
+ *       200:
+ *         description: Successful login or registration
+ *       401:
+ *         description: Invalid Google token
+ */
+//router.post('/google-login', googleLogin);
+
+// Google login (POST)
+router.post('/auth/google', googleLogin);
+
 
 
 module.exports = router;
