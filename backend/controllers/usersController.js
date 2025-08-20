@@ -167,6 +167,13 @@ const loginUser = async (req, res) => {
   }
 };
 
+const getCurrentUser = (req, res) => {
+  if (req.session.user) {
+    return res.json(req.session.user);
+  }
+  res.status(401).json({ error: "Not authenticated" });
+};
+
 
 // POST /api/users/register
 const registerUser = async (req, res) => {
@@ -206,13 +213,12 @@ const registerUser = async (req, res) => {
 };
 
 const logoutUser = (req, res) => {
-  req.session.destroy(err => {
+  req.session.destroy((err) => {
     if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ error: "Could not log out" });
+      return res.status(500).json({ error: "Failed to logout" });
     }
     res.clearCookie("connect.sid"); // clear session cookie
-    res.json({ message: "Logout successful" });
+    return res.json({ message: "Logout successful" });
   });
 };
 
@@ -221,5 +227,7 @@ module.exports = {
     getUserById,
     registerUser,
     loginUser,
-    updateUser
+    updateUser,
+    getCurrentUser,
+    logoutUser
 };

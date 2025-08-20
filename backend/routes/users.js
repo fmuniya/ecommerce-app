@@ -5,7 +5,10 @@ const {
     getUserById, 
     updateUser, 
     registerUser, 
-    loginUser } = require('../controllers/usersController');
+    loginUser,
+    getCurrentUser,
+    logoutUser,
+ } = require('../controllers/usersController');
 
 const { authenticateToken, authorizeRole, requireAuth } = require('../middleware/auth');
 const { register, login, googleLogin } = require('../controllers/authController');
@@ -203,6 +206,15 @@ router.post('/login', login);
 
 // Google login (POST)
 router.post('/auth/google', googleLogin);
+
+// get logged-in user
+router.get("/me", getCurrentUser);
+
+// Logout
+router.post('/logout', logoutUser);
+
+
+
 
 
 

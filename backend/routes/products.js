@@ -9,7 +9,7 @@ const {
 } = require('../controllers/productsController');
 
 
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, requireAuth } = require('../middleware/auth');
 
 /**
  * @swagger
