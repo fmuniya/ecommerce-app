@@ -7,8 +7,12 @@ frontend/build
 backend/dist
 
 # Environment files
-backend/.env
+.env
 frontend/.env
 
 # OS files
 .DS_Store
+
+# googleAuth credentials
+backend/googleauthClient.txt
+

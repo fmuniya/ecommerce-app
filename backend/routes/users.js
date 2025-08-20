@@ -7,7 +7,7 @@ const {
     registerUser, 
     loginUser } = require('../controllers/usersController');
 
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { authenticateToken, authorizeRole, requireAuth } = require('../middleware/auth');
 const { register, login, googleLogin } = require('../controllers/authController');
 
 /**
@@ -35,7 +35,7 @@ const { register, login, googleLogin } = require('../controllers/authController'
  *       403:
  *         description: Forbidden
  */
-router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
+router.get('/', authenticateToken, authorizeRole('admin'),requireAuth, getAllUsers);
 
 //Admin or user
 
@@ -66,7 +66,7 @@ router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
  */
 
 //get user by ID
-router.get('/:id', authenticateToken, getUserById);
+router.get('/:id', authenticateToken, requireAuth, getUserById);
 // Update user
 // router.put('/:id', authenticateToken, updateUser);
 
@@ -111,7 +111,7 @@ router.get('/:id', authenticateToken, getUserById);
  *       404:
  *         description: User not found
  */
-router.put('/:id', authenticateToken, updateUser);
+router.put('/:id', authenticateToken, requireAuth, updateUser);
 
 
 /**

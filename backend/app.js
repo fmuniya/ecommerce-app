@@ -6,7 +6,7 @@ const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/orders');
 const setupSwagger = require('./swagger');
 const cors = require('cors');
-const userRoutes = require('./routes/users');
+const session = require('express-session');
 
 
 // Allow requests from your frontend origin
@@ -16,9 +16,19 @@ app.use(cors({
   credentials: true
 }));
 
-app.use('/users', userRoutes);
-
 app.use(express.json());
+
+// session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key', 
+  resave: false,        // avoid saving session if nothing changed
+  saveUninitialized: false, // don't save empty sessions
+  cookie: {
+    maxAge: 1000 * 60 * 60, // 1 hour
+    httpOnly: process.env.NODE_ENV === "production", // true,          
+    secure: false            // set true if using HTTPS
+  }
+}));
 
 app.use('/api/users', usersRouter);
 app.use('/api/products', productsRouter);
@@ -31,5 +41,6 @@ setupSwagger(app);
 app.get('/', (req, res) => {
   res.send('E-Commerce API running');
 });
+console.log("TEST variable:", process.env.REACT_APP_TEST);
 
 module.exports = app;

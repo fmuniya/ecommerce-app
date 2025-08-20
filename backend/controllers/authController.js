@@ -71,7 +71,11 @@ const login = async (req, res) => {
 // Google login
 const googleLogin = async (req, res) => {
   try {
-    const { token: idToken } = req.body;
+    const { credential: idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "No credential provided" });
+    }
 
     const ticket = await client.verifyIdToken({
       idToken,
@@ -85,9 +89,10 @@ const googleLogin = async (req, res) => {
 
     let user;
     if (result.rows.length === 0) {
+      // Create new Google user
       result = await pool.query(
         "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *",
-        [name, email, null, "user"]   // password can be null for Google users
+        [name, email, null, "user"]
       );
     }
 
@@ -100,6 +105,7 @@ const googleLogin = async (req, res) => {
     res.status(500).json({ error: "Google login failed" });
   }
 };
+
 
 module.exports = {
   register,

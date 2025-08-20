@@ -121,7 +121,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Generate JWT
+    /* // Generate JWT
     const token = jwt.sign(
       {
         userId: user.id,
@@ -135,6 +135,24 @@ const loginUser = async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    }); */
+
+     // Create session instead of just JWT
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name
+    };
+
+    res.status(200).json({
+      message: "Login successful",
       user: {
         id: user.id,
         name: user.name,
@@ -185,6 +203,17 @@ const registerUser = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+};
+
+const logoutUser = (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ error: "Could not log out" });
+    }
+    res.clearCookie("connect.sid"); // clear session cookie
+    res.json({ message: "Logout successful" });
+  });
 };
 
 module.exports = { 
