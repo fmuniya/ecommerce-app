@@ -41,6 +41,5 @@ setupSwagger(app);
 app.get('/', (req, res) => {
   res.send('E-Commerce API running');
 });
-console.log("TEST variable:", process.env.REACT_APP_TEST);
 
 module.exports = app;

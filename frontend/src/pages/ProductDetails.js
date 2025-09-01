@@ -67,7 +67,7 @@ const ProductDetails = () => {
         {/* Product Image */}
         <div style={{ flex: 1 }}>
           <img
-            src={product.imageUrl || "https://via.placeholder.com/400"}
+            src={product.imageUrl || "https://placehold.co/400"}
             alt={product.name}
             style={{
               width: "100%",
@@ -94,7 +94,7 @@ const ProductDetails = () => {
           </p>
 
           <button
-            onClick={() => addToCart(product)}
+            onClick={() => addToCart(product.id, 1)}
             style={{
               marginTop: "auto",
               padding: "12px 18px",

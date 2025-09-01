@@ -14,7 +14,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     try {
-      await login(email, password);
+      await login(email, password); // cart fetched inside AuthContext
       navigate("/products");
     } catch (err) {
       setError(err.response?.data?.error || "Invalid credentials. Please try again.");

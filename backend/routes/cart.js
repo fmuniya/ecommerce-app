@@ -1,147 +1,149 @@
-const express = require('express');
+const express = require("express");
+const pool = require("../db");
+const { authenticateToken } = require("../middleware/auth");
+
 const router = express.Router();
 
-const {
-  createOrGetCart,
-  addOrUpdateCartItem,
-  getCartContents,
-  checkoutCart
-} = require('../controllers/cartController');
+// Helper function to get full cart with items
+const getCartWithItems = async (userId) => {
+  const cartResult = await pool.query("SELECT * FROM carts WHERE user_id=$1", [userId]);
+  if (cartResult.rows.length === 0) return null;
+  const cart = cartResult.rows[0];
 
-const { authenticateToken } = require('../middleware/auth');
+  const itemsResult = await pool.query(
+    `SELECT ci.id, ci.quantity, p.id AS product_id, p.name, p.price
+     FROM cart_items ci
+     JOIN products p ON ci.product_id = p.id
+     WHERE ci.cart_id = $1`,
+    [cart.id]
+  );
+
+  return { ...cart, items: itemsResult.rows };
+};
 
 /**
- * @swagger
- * tags:
- *   name: Cart
- *   description: Shopping cart management
+ * GET /api/cart - get or create user's cart
  */
+router.get("/", authenticateToken, async (req, res) => {
+  try {
+    let cart = await getCartWithItems(req.user.id);
+    if (!cart) {
+      // create a new cart
+      const newCartResult = await pool.query(
+        "INSERT INTO carts (user_id) VALUES ($1) RETURNING *",
+        [req.user.id]
+      );
+      cart = await getCartWithItems(req.user.id);
+    }
+    res.json(cart);
+  } catch (err) {
+    console.error("Error fetching cart:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
-// Create or get user's cart
 /**
- * @swagger
- * /cart:
- *   post:
- *     summary: Create or get the current user's cart
- *     tags: [Cart]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Existing cart returned
- *       201:
- *         description: New cart created
- *       401:
- *         description: Unauthorized
+ * POST /api/cart/items - add item to cart
  */
-router.post('/', authenticateToken, createOrGetCart);
+router.post("/items", authenticateToken, async (req, res) => {
+  const { product_id, quantity } = req.body;
 
-// Add or update item in cart
-/**
- * @swagger
- * /cart/{cartId}:
- *   post:
- *     summary: Add or update an item in the cart
- *     tags: [Cart]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cartId
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the cart
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - product_id
- *               - quantity
- *             properties:
- *               product_id:
- *                 type: integer
- *                 example: 1
- *               quantity:
- *                 type: integer
- *                 example: 2
- *     responses:
- *       200:
- *         description: Item updated in cart
- *       201:
- *         description: Item added to cart
- *       400:
- *         description: Invalid input
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden (not your cart)
- *       404:
- *         description: Cart not found
- */
-router.post('/:cartId', authenticateToken, addOrUpdateCartItem);
+  if (!product_id || !quantity || quantity <= 0) {
+    return res.status(400).json({ error: "product_id and positive quantity required" });
+  }
 
-// Get all items in a cart
-/**
- * @swagger
- * /cart/{cartId}:
- *   get:
- *     summary: Get all items in a cart
- *     tags: [Cart]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cartId
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the cart
- *     responses:
- *       200:
- *         description: List of cart items
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden (not your cart)
- *       404:
- *         description: Cart not found
- */
-router.get('/:cartId', authenticateToken, getCartContents);
+  try {
+    let cart = await getCartWithItems(req.user.id);
 
-//cart checkout
+    if (!cart) {
+      // Create a new cart if user has none
+      await pool.query(
+        "INSERT INTO carts (user_id) VALUES ($1) RETURNING *",
+        [req.user.id]
+      );
+      cart = await getCartWithItems(req.user.id);
+    }
+
+    // Check if item exists
+    const existingItem = await pool.query(
+      "SELECT * FROM cart_items WHERE cart_id=$1 AND product_id=$2",
+      [cart.id, product_id]
+    );
+
+    if (existingItem.rows.length > 0) {
+      // update quantity
+      await pool.query(
+        "UPDATE cart_items SET quantity = quantity + $1 WHERE cart_id=$2 AND product_id=$3",
+        [quantity, cart.id, product_id]
+      );
+    } else {
+      // insert new item
+      await pool.query(
+        "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)",
+        [cart.id, product_id, quantity]
+      );
+    }
+
+    // Return updated cart
+    const updatedCart = await getCartWithItems(req.user.id);
+    res.json(updatedCart);
+  } catch (err) {
+    console.error("Error adding to cart:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 /**
- * @swagger
- * /cart/{cartId}/checkout:
- *   post:
- *     summary: Checkout the cart and create an order
- *     tags: [Cart]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cartId
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the cart
- *     responses:
- *       201:
- *         description: Checkout successful and order created
- *       400:
- *         description: Cart is empty
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden (not your cart)
- *       404:
- *         description: Cart not found
- *       500:
- *         description: Internal server error
+ * PUT /api/cart/items/:itemId - update item quantity
  */
-router.post('/:cartId/checkout', authenticateToken, checkoutCart);
+router.put("/items/:itemId", authenticateToken, async (req, res) => {
+  const { itemId } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const item = await pool.query(
+      `SELECT ci.* FROM cart_items ci 
+       JOIN carts c ON ci.cart_id = c.id
+       WHERE ci.id=$1 AND c.user_id=$2`,
+      [itemId, req.user.id]
+    );
+
+    if (item.rows.length === 0) return res.status(404).json({ error: "Item not found in your cart" });
+
+    await pool.query("UPDATE cart_items SET quantity=$1 WHERE id=$2", [quantity, itemId]);
+
+    const updatedCart = await getCartWithItems(req.user.id);
+    res.json(updatedCart);
+  } catch (err) {
+    console.error("Error updating cart item:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * DELETE /api/cart/items/:itemId - remove item from cart
+ */
+router.delete("/items/:itemId", authenticateToken, async (req, res) => {
+  const { itemId } = req.params;
+
+  try {
+    const item = await pool.query(
+      `SELECT ci.* FROM cart_items ci 
+       JOIN carts c ON ci.cart_id = c.id
+       WHERE ci.id=$1 AND c.user_id=$2`,
+      [itemId, req.user.id]
+    );
+
+    if (item.rows.length === 0) return res.status(404).json({ error: "Item not found in your cart" });
+
+    await pool.query("DELETE FROM cart_items WHERE id=$1", [itemId]);
+
+    const updatedCart = await getCartWithItems(req.user.id);
+    res.json(updatedCart);
+  } catch (err) {
+    console.error("Error removing cart item:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;

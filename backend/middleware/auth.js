@@ -9,7 +9,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.error('JWT verify error:', err.message);  // Add this for better debugging
+      console.error('JWT verify error:', err.message);
       return res.status(403).json({ error: 'Invalid token' });
     }
     req.user = user; // userId, email, role, etc.
@@ -27,15 +27,15 @@ const authorizeRole = (role) => {
   };
 };
 
-const requireAuth = (req, res, next) => {
+/* const requireAuth = (req, res, next) => {
   if (!req.session.user) {
     return res.status(401).json({ error: "Not authenticated" });
   }
   next();
-};
+}; */
 
 module.exports = {
   authenticateToken,
   authorizeRole,
-  requireAuth
+  //requireAuth
 };

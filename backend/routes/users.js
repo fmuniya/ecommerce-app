@@ -4,14 +4,14 @@ const {
     getAllUsers, 
     getUserById, 
     updateUser, 
-    registerUser, 
-    loginUser,
-    getCurrentUser,
     logoutUser,
  } = require('../controllers/usersController');
 
-const { authenticateToken, authorizeRole, requireAuth } = require('../middleware/auth');
-const { register, login, googleLogin } = require('../controllers/authController');
+
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const { register, login, googleLogin, getCurrentUser } = require('../controllers/authController');
+
+//console.log({ authenticateToken, authorizeRole, getAllUsers });
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ const { register, login, googleLogin } = require('../controllers/authController'
  *       403:
  *         description: Forbidden
  */
-router.get('/', authenticateToken, authorizeRole('admin'),requireAuth, getAllUsers);
+router.get('/', authenticateToken, authorizeRole('admin'), getAllUsers);
 
 //Admin or user
 
@@ -69,7 +69,7 @@ router.get('/', authenticateToken, authorizeRole('admin'),requireAuth, getAllUse
  */
 
 //get user by ID
-router.get('/:id', authenticateToken, requireAuth, getUserById);
+router.get('/:id', authenticateToken, getUserById);
 // Update user
 // router.put('/:id', authenticateToken, updateUser);
 
@@ -114,7 +114,7 @@ router.get('/:id', authenticateToken, requireAuth, getUserById);
  *       404:
  *         description: User not found
  */
-router.put('/:id', authenticateToken, requireAuth, updateUser);
+router.put('/:id', authenticateToken, updateUser);
 
 
 /**
@@ -146,8 +146,7 @@ router.put('/:id', authenticateToken, requireAuth, updateUser);
  *       400:
  *         description: Invalid input
  */
-router.post('/register', register);
-
+router.post("/register", register);
 
 /**
  * @swagger
@@ -208,10 +207,12 @@ router.post('/login', login);
 router.post('/auth/google', googleLogin);
 
 // get logged-in user
-router.get("/me", getCurrentUser);
+router.get("/me", authenticateToken, getCurrentUser);
 
 // Logout
+
 router.post('/logout', logoutUser);
+
 
 
 

@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:3000/api",
+  baseURL: "/api",
 });
 
-// Attach JWT from localStorage automatically
+// Automatically add token from localStorage if present
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -14,3 +14,4 @@ API.interceptors.request.use((config) => {
 });
 
 export default API;
+
