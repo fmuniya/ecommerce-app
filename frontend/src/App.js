@@ -10,6 +10,7 @@ import Cart from "./pages/Cart";
 import Home from "./pages/Home";
 import Checkout from "./pages/Checkout";
 import { CartProvider } from "./context/CartContext";
+import Success from "./pages/Success";
 
 function App() {
   const { loading, user } = useAuth();
@@ -31,6 +32,7 @@ function App() {
             <Route path="/products/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/success" element={<Success />} />
           </Routes>
         </Router>
       </AuthProvider>

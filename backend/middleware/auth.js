@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 // Authenticate user with JWT
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-
+  console.log("Auth header received:", authHeader);
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
   if (!token) return res.status(401).json({ error: 'Token missing' });
 
