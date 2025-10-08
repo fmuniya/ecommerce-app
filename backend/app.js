@@ -27,11 +27,11 @@ app.use(express.json());
 // session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key', 
-  resave: false,        // avoid saving session if nothing changed
+  resave: false,        // avoids saving session if nothing changed
   saveUninitialized: false, // don't save empty sessions
   cookie: {
     maxAge: 1000 * 60 * 60, // 1 hour
-    httpOnly: process.env.NODE_ENV === "production", // true,          
+    httpOnly: process.env.NODE_ENV === "production",          
     secure: false            // set true if using HTTPS
   }
 }));
@@ -55,7 +55,6 @@ app.post("/api/checkout/create-payment-intent", async (req, res) => {
   try {
     const { items } = req.body;
 
-    // Example: simple calculation (you can modify for your actual prices)
     const amount = items.reduce(
       (total, item) => total + item.price * item.quantity * 100,
       0
@@ -73,6 +72,18 @@ app.post("/api/checkout/create-payment-intent", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+const path = require("path");
+
+// Serve frontend build in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../frontend", "build", "index.html"));
+  });
+}
+
 
 
 module.exports = app;
