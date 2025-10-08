@@ -44,7 +44,7 @@ const CheckoutForm = () => {
         },
       }
       );
-      const { clientSecret } = res.data;
+      const { clientSecret, orderId } = res.data;
 
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
@@ -55,9 +55,22 @@ const CheckoutForm = () => {
       if (result.error) {
         alert(result.error.message);
       } else if (result.paymentIntent.status === "succeeded") {
-        clearCartContext();
-        navigate("/success");
+        // Mark order as Paid in the backend
+          await axios.post(
+            "/api/checkout/mark-paid",
+            {
+              orderId,
+              paymentIntentId: result.paymentIntent.id,
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          clearCartContext();
+          navigate("/success");
       }
+
     } catch (err) {
       console.error(err);
       alert("Payment failed");

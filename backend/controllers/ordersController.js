@@ -20,25 +20,47 @@ const getAllOrders = async (req, res) => {
 
 // GET /api/orders - Get all orders for the authenticated user
 const getUserOrders = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.id;
 
   try {
+    // Fetch each order with its associated items
     const ordersResult = await pool.query(
-      `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
+      `
+      SELECT 
+        o.id, 
+        o.total_amount, 
+        o.status, 
+        o.created_at,
+        json_agg(
+          json_build_object(
+            'product_id', oi.product_id,
+            'product_name', p.name,
+            'quantity', oi.quantity,
+            'price', oi.price
+          )
+        ) AS items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN products p ON oi.product_id = p.id
+      WHERE o.user_id = $1
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+      `,
       [userId]
     );
 
-    res.json(ordersResult.rows);
+    res.status(200).json(ordersResult.rows);
   } catch (err) {
-    console.error('getUserOrders error:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("getUserOrders error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 // GET /api/orders/:orderId - Get a specific order and its items
 const getOrderById = async (req, res) => {
   const { orderId } = req.params;
-  const userId = req.user.userId;
+  const userId = req.user.id;
   const userRole = req.user.role;
 
   try {

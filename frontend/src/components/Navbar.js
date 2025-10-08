@@ -42,6 +42,9 @@ function Navbar() {
         <Link to="/cart" style={{ color: "#fff", marginRight: "10px" }}>
           Cart
         </Link>
+        <Link to="/orders" style={{ color: "#fff", marginRight: "10px" }}>
+          My Orders
+        </Link>
       </div>
 
       <div>

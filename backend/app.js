@@ -42,6 +42,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use("/api/checkout", require("./routes/checkout"));
 
+
 // Swagger docsroute
 setupSwagger(app);
 
