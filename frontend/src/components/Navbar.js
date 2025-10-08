@@ -1,22 +1,18 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { CartContext } from "../context/CartContext"; // import CartContext
+import { CartContext } from "../context/CartContext";
+import "./Navbar.css"; // <-- new CSS file
 
 function Navbar() {
   const { user, logout } = useContext(AuthContext);
-  const { clearCartContext } = useContext(CartContext); // get clearCartContext
+  const { clearCartContext } = useContext(CartContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      // Call backend logout
       await logout();
-
-      // Clear cart context
       clearCartContext();
-
-      // Navigate to login page
       navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);
@@ -24,49 +20,31 @@ function Navbar() {
   };
 
   return (
-    <nav
-      style={{
-        background: "#222",
-        padding: "10px",
-        display: "flex",
-        justifyContent: "space-between",
-      }}
-    >
-      <div>
-        <Link to="/" style={{ color: "#fff", marginRight: "10px" }}>
+    <nav className="navbar">
+      <div className="nav-left">
+        <NavLink to="/" className="nav-link">
           Home
-        </Link>
-        <Link to="/products" style={{ color: "#fff", marginRight: "10px" }}>
+        </NavLink>
+        <NavLink to="/products" className="nav-link">
           Products
-        </Link>
-        <Link to="/cart" style={{ color: "#fff", marginRight: "10px" }}>
+        </NavLink>
+        <NavLink to="/cart" className="nav-link">
           Cart
-        </Link>
-        <Link to="/orders" style={{ color: "#fff", marginRight: "10px" }}>
+        </NavLink>
+        <NavLink to="/orders" className="nav-link">
           My Orders
-        </Link>
+        </NavLink>
       </div>
 
-      <div>
+      <div className="nav-right">
         {!user ? (
-          <Link to="/login" style={{ color: "#fff", marginRight: "10px" }}>
+          <NavLink to="/login" className="nav-link">
             Login
-          </Link>
+          </NavLink>
         ) : (
           <>
-            <span style={{ color: "#0f0", marginRight: "10px" }}>
-              {user.name || user.email}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                color: "#fff",
-                background: "transparent",
-                border: "1px solid #fff",
-                padding: "5px 10px",
-                cursor: "pointer",
-              }}
-            >
+            <span className="user-text">{user.name || user.email}</span>
+            <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
           </>

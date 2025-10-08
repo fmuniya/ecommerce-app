@@ -1,0 +1,78 @@
+/* ===== NAVBAR LAYOUT ===== */
+.navbar {
+  background: #1a202c;
+  padding: 12px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* ===== LINKS ===== */
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-link {
+  color: #e2e8f0;
+  text-decoration: none; /* remove underline */
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover & active states */
+.nav-link:hover {
+  color: #63b3ed;
+  transform: translateY(-2px);
+}
+
+.nav-link.active {
+  color: #63b3ed;
+  font-weight: 600;
+}
+
+/* Fancy underline animation */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #63b3ed;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ===== USER TEXT & BUTTON ===== */
+.user-text {
+  color: #48bb78;
+  font-weight: 500;
+}
+
+.logout-btn {
+  color: #fff;
+  background: transparent;
+  border: 1px solid #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #fff;
+  color: #1a202c;
+  transform: scale(1.05);
+}
