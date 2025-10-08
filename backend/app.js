@@ -1,60 +1,66 @@
 require("dotenv").config();
 
-const express = require('express');
+const express = require("express");
 const app = express();
-const usersRouter = require('./routes/users');
-const productsRouter = require('./routes/products');
-const cartRouter = require('./routes/cart');
-const ordersRouter = require('./routes/orders');
-const setupSwagger = require('./swagger');
-const cors = require('cors');
-const session = require('express-session');
+const path = require("path");
+const cors = require("cors");
+const session = require("express-session");
 const Stripe = require("stripe");
 
+// Routers
+const usersRouter = require("./routes/users");
+const productsRouter = require("./routes/products");
+const cartRouter = require("./routes/cart");
+const ordersRouter = require("./routes/orders");
+const checkoutRouter = require("./routes/checkout");
+const setupSwagger = require("./swagger");
 
+// Initialize Stripe
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-
-// Allow requests from your frontend origin
-app.use(cors({
-  origin: 'http://localhost:3001',  // frontend URL
-  methods: ['GET','POST','PUT','DELETE'],
-  credentials: true
-}));
-
+// Middleware
 app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3001", // dynamic for local or Render
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
-// session middleware
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key', 
-  resave: false,        // avoids saving session if nothing changed
-  saveUninitialized: false, // don't save empty sessions
-  cookie: {
-    maxAge: 1000 * 60 * 60, // 1 hour
-    httpOnly: process.env.NODE_ENV === "production",          
-    secure: false            // set true if using HTTPS
-  }
-}));
+// Sessions
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60, // 1 hour
+      httpOnly: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // true when deployed with HTTPS
+    },
+  })
+);
 
-app.use('/api/users', usersRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/cart', cartRouter);
-app.use('/api/orders', ordersRouter);
-app.use("/api/checkout", require("./routes/checkout"));
+// API Routes
+app.use("/api/users", usersRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/orders", ordersRouter);
+app.use("/api/checkout", checkoutRouter);
 
-
-// Swagger docsroute
+//Swagger
 setupSwagger(app);
 
-app.get('/', (req, res) => {
-  res.send('E-Commerce API running');
+
+app.get("/api", (req, res) => {
+  res.send("E-Commerce API running");
 });
 
-// === Stripe Checkout Route (Test Mode) ===
+// Stripe test route 
 app.post("/api/checkout/create-payment-intent", async (req, res) => {
   try {
     const { items } = req.body;
-
     const amount = items.reduce(
       (total, item) => total + item.price * item.quantity * 100,
       0
@@ -68,23 +74,22 @@ app.post("/api/checkout/create-payment-intent", async (req, res) => {
 
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
-    console.error("Stripe error:", error);
+    console.error("Stripe error:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
 
-const path = require("path");
-
-// Serve frontend build in production
+// Serve React frontend in production
 if (process.env.NODE_ENV === "production") {
   const buildPath = path.join(__dirname, "../frontend/build");
+  console.log("Serving React build from:", buildPath);
+
   app.use(express.static(buildPath));
 
+  // All other routes → React app
   app.get("*", (req, res) => {
     res.sendFile(path.join(buildPath, "index.html"));
   });
 }
-
-
 
 module.exports = app;
