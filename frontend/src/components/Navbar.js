@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
-import "./Navbar.css"; // <-- new CSS file
+import "./Navbar.css";
 
 function Navbar() {
   const { user, logout } = useContext(AuthContext);
